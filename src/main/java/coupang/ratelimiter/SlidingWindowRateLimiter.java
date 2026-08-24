@@ -27,17 +27,16 @@ public class SlidingWindowRateLimiter extends RateLimiter {
 
     @Override
     protected Boolean tryAcquire() {
+        synchronized (mutex) {
+            long l = System.currentTimeMillis();
+            //计算当前桶的id，id代表了当前时间等于桶大小的倍数
+            long bucketId = l / bucketSize;
+            //计算当前桶的下标
+            int bucketIndex = (int) (bucketId % bucketCnt);
 
-        long l = System.currentTimeMillis();
-        //计算当前桶的id，id代表了当前时间等于桶大小的倍数
-        long bucketId = l / bucketSize;
-        //计算当前桶的下标
-        int bucketIndex = (int) (bucketId % bucketCnt);
+            //计算有效的最小窗口id
+            long latestBucketId = bucketId - bucketCnt + 1;
 
-        //计算有效的最小窗口id
-        long latestBucketId = bucketId - bucketCnt + 1;
-
-        synchronized (this) {
             Long totalCnt = sumReqCnt(latestBucketId);
 
             if (totalCnt > limitCnt) {
@@ -52,7 +51,7 @@ public class SlidingWindowRateLimiter extends RateLimiter {
 
     @Override
     protected void update(long timeWindow, Integer limitCnt) {
-        synchronized (this) {
+        synchronized (mutex) {
             this.bucketSize = super.timeWindow / bucketCnt;
         }
     }

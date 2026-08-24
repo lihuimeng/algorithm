@@ -30,11 +30,10 @@ public class TokenRateLimiter extends RateLimiter{
 
     @Override
     protected  Boolean tryAcquire() {
-
-        //根据当前时间计算和最近一次发放令牌的时间差计算当前令牌数量
-        long currentTimeSecond = System.currentTimeMillis()/1000;
-        long l = (int)(currentTimeSecond - this.lastIssueTimeSecond);
-        synchronized (this) {
+        synchronized (mutex) {
+            //根据当前时间计算和最近一次发放令牌的时间差计算当前令牌数量
+            long currentTimeSecond = System.currentTimeMillis()/1000;
+            long l = (int)(currentTimeSecond - this.lastIssueTimeSecond);
             currentTokenCnt = (int)Math.min(l * tokenCntSecond + currentTokenCnt, limitCnt);
             if (currentTokenCnt <= 0) {
                 return false;
@@ -47,7 +46,9 @@ public class TokenRateLimiter extends RateLimiter{
 
     @Override
     protected void update(long timeWindow, Integer limitCnt) {
-        this.tokenCntSecond = getTokenCntSecond(timeWindow, limitCnt);
+        synchronized (mutex) {
+            this.tokenCntSecond = getTokenCntSecond(timeWindow, limitCnt);
+        }
     }
 
 }

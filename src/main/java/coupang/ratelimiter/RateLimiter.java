@@ -7,6 +7,8 @@ package coupang.ratelimiter;
  */
 public abstract class RateLimiter {
 
+    protected final Object mutex = new Object();
+
     protected long timeWindow;
 
     protected Integer limitCnt;
@@ -19,9 +21,11 @@ public abstract class RateLimiter {
     protected  abstract  Boolean tryAcquire();
 
     public void updateWindow(long timeWindow, Integer limitCnt) {
-        this.timeWindow = timeWindow;
-        this.limitCnt = limitCnt;
-        update(timeWindow, limitCnt);
+        synchronized (mutex) {
+            this.timeWindow = timeWindow;
+            this.limitCnt = limitCnt;
+            update(timeWindow, limitCnt);
+        }
     }
 
     protected abstract void update(long timeWindow, Integer limitCnt);
