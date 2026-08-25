@@ -5,7 +5,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @ClassName SimpleMessageQueue
- * @Description 手写消息队列   实现生产者 消费者，消息具有ttl过期时间，过期消息必须释放并无法消费
+ * @Description 手写消息队列   实现生产者 消费者，
+ *
+ * 消息具有ttl过期时间，过期消息必须释放并无法消费
  */
 public class SimpleMessageQueue {
     private static class Message {
