@@ -7,18 +7,18 @@ package coupang.ratelimiter;
  */
 public class RateLimiterFactory {
 
-    public enum RateLimiterTypeEnum{
+    public enum RateLimiterTypeEnum {
         SLIDING_WINDOW,
         TOKEN_BUCKET,
         ;
     }
 
     public static RateLimiter create(RateLimiterTypeEnum rateLimiterTypeEnum, long timeWindow, Integer limitCnt) {
-        switch(rateLimiterTypeEnum) {
+        switch (rateLimiterTypeEnum) {
             case TOKEN_BUCKET:
-                return new TokenRateLimiter(timeWindow, limitCnt);
+                return TokenRateLimiter.getInstance(timeWindow, limitCnt);
             case SLIDING_WINDOW:
-                return new SlidingWindowRateLimiter(timeWindow, limitCnt);
+                return SlidingWindowRateLimiter.getInstance(timeWindow, limitCnt);
             default:
                 throw new RuntimeException("参数错误，无对应的限流器实例");
         }

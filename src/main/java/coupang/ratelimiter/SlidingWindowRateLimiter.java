@@ -1,8 +1,6 @@
 package coupang.ratelimiter;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author Ryan Lee
@@ -11,17 +9,59 @@ import java.util.List;
  */
 public class SlidingWindowRateLimiter extends RateLimiter {
 
+    /**
+     * 定义一个限流桶，窗口由固定数量的桶组成，窗口越大，每个桶的时间跨度越大
+     */
+    public static class RateLimiterBucket {
+        //次数
+        private long bucketId;
+
+        private int requestCnt;
+
+        public RateLimiterBucket(long bucketId, int requestCnt) {
+            this.bucketId = bucketId;
+            this.requestCnt = requestCnt;
+        }
+
+        public long getBucketId() {
+            return bucketId;
+        }
+
+        public int getRequestCnt() {
+            return requestCnt;
+        }
+
+        public void setBucketId(long bucketId) {
+            this.bucketId = bucketId;
+        }
+
+        public void setRequestCnt(int requestCnt) {
+            this.requestCnt = requestCnt;
+        }
+    }
+
+    //时间窗口，窗口内请求次数不能超过参数指定次数
     private final RateLimiterBucket[] window;
 
-    private final int bucketCnt = 1000;
+    //窗口内桶的数量
+    public static final int bucketCnt = 50;
+
+    //每个桶的时间跨度
     private long bucketSize;
 
 
     //构造方法，初始化window，计算每个桶的时间跨度大小
-    protected SlidingWindowRateLimiter(long timeWindow, Integer limitCnt) {
+    private SlidingWindowRateLimiter(long timeWindow, Integer limitCnt) {
         super(timeWindow, limitCnt);
         this.window = new RateLimiterBucket[bucketCnt];
-        this.bucketSize = super.timeWindow / bucketCnt;
+        this.bucketSize = Math.max(super.timeWindow / bucketCnt, 1);
+    }
+
+    public static SlidingWindowRateLimiter getInstance(long timeWindow, Integer limitCnt) {
+        if (timeWindow < bucketCnt) {
+            throw new RuntimeException("窗口大小不能小于" + bucketCnt);
+        }
+        return new SlidingWindowRateLimiter(timeWindow, limitCnt);
     }
 
 
@@ -39,7 +79,7 @@ public class SlidingWindowRateLimiter extends RateLimiter {
 
             Long totalCnt = sumReqCnt(latestBucketId);
 
-            if (totalCnt > limitCnt) {
+            if (totalCnt >= limitCnt) {
                 return false;
             }
 
@@ -53,6 +93,7 @@ public class SlidingWindowRateLimiter extends RateLimiter {
     protected void update(long timeWindow, Integer limitCnt) {
         synchronized (mutex) {
             this.bucketSize = super.timeWindow / bucketCnt;
+            Arrays.fill(window, null);
         }
     }
 
@@ -81,33 +122,7 @@ public class SlidingWindowRateLimiter extends RateLimiter {
     }
 
 
-    public static class RateLimiterBucket {
-        //次数
-        private long bucketId;
 
-        private int requestCnt;
-
-        public RateLimiterBucket(long bucketId, int requestCnt) {
-            this.bucketId = bucketId;
-            this.requestCnt = requestCnt;
-        }
-
-        public long getBucketId() {
-            return bucketId;
-        }
-
-        public int getRequestCnt() {
-            return requestCnt;
-        }
-
-        public void setBucketId(long bucketId) {
-            this.bucketId = bucketId;
-        }
-
-        public void setRequestCnt(int requestCnt) {
-            this.requestCnt = requestCnt;
-        }
-    }
 
 
 }
