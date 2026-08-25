@@ -17,6 +17,7 @@ public class RateLimiterMain {
             public void run() {
                 long l = System.currentTimeMillis();
                 int falseCnt = 0;
+                int trueCnt = 0;
                 for (int i = 0; i < 1000; i++) {
                     try {
                         Thread.sleep(5);
@@ -26,10 +27,13 @@ public class RateLimiterMain {
                     Boolean b = rateLimiterManager.tryAcquire(pathKey1);
                     if (!b) {
                         falseCnt++;
+                    }else {
+                        trueCnt++;
                     }
 //                    System.out.println(pathKey1 + ":" + i + ":" + b);
                 }
                 System.out.println("falseCnt:" + falseCnt);
+                System.out.println("trueCnt:" + trueCnt);
                 System.out.println("time:" + (System.currentTimeMillis() - l));
             }
         }).start();
